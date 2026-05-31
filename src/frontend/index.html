@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>HelpCenter Office — Inicio</title>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; font-family:Segoe UI,sans-serif; }
+        body{ background:#f0f4f9; display:flex; flex-direction:column; min-height:100vh; }
+        .navbar{ background:#0078d4; padding:15px 40px; display:flex; justify-content:space-between; align-items:center; color:white; }
+        .logo{ font-size:24px; font-weight:700; }
+        .hero{ flex:1; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0078d4,#005a9e); color:white; text-align:center; padding:60px 20px; }
+        .hero-box{ max-width:500px; }
+        .hero h1{ font-size:42px; margin-bottom:12px; }
+        .hero p{ font-size:18px; opacity:.85; margin-bottom:36px; }
+        .cards{ display:flex; gap:20px; justify-content:center; flex-wrap:wrap; }
+        .role-card{ background:white; border-radius:14px; padding:32px 28px; width:200px; text-align:center; cursor:pointer; transition:.25s; border:2px solid transparent; }
+        .role-card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(0,0,0,.15); border-color:#0078d4; }
+        .role-card .icon{ font-size:44px; margin-bottom:12px; }
+        .role-card h3{ font-size:17px; color:#0078d4; font-weight:700; margin-bottom:6px; }
+        .role-card p{ font-size:13px; color:#777; }
+        /* Modal */
+        .overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; align-items:center; justify-content:center; }
+        .overlay.active{ display:flex; }
+        .modal{ background:white; border-radius:14px; padding:36px 40px; width:100%; max-width:440px; position:relative; animation:up .25s ease; }
+        @keyframes up{ from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+        .modal-close{ position:absolute; top:14px; right:18px; background:none; border:none; font-size:22px; cursor:pointer; color:#888; }
+        .modal h2{ font-size:22px; color:#0078d4; margin-bottom:4px; }
+        .modal .sub{ font-size:13px; color:#999; margin-bottom:22px; }
+        .fg{ margin-bottom:16px; }
+        .fg label{ display:block; font-size:13px; font-weight:600; color:#444; margin-bottom:5px; }
+        .fg input, .fg select{ width:100%; padding:11px 14px; border:1.5px solid #ddd; border-radius:7px; font-size:15px; font-family:inherit; background:#fafafa; transition:border-color .2s; }
+        .fg input:focus, .fg select:focus{ outline:none; border-color:#0078d4; background:white; }
+        .btn-main{ width:100%; padding:13px; background:#0078d4; color:white; border:none; border-radius:7px; font-size:16px; font-weight:700; cursor:pointer; margin-top:4px; transition:background .2s; }
+        .btn-main:hover{ background:#005a9e; }
+        .btn-main:disabled{ opacity:.6; cursor:not-allowed; }
+        .err{ display:none; color:#d13438; font-size:13px; padding:10px; background:#fff0f0; border-radius:6px; border-left:3px solid #d13438; margin-bottom:12px; }
+        .switch{ text-align:center; margin-top:14px; font-size:13px; color:#666; }
+        .switch a{ color:#0078d4; cursor:pointer; font-weight:600; }
+        .success{ display:none; text-align:center; padding:20px 0; }
+        .success .ck{ font-size:50px; margin-bottom:10px; }
+        .success h3{ font-size:20px; color:#107c10; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo">🖥️ HelpCenter Office</div>
+    <span style="font-size:14px;opacity:.85">Tec de Jiménez</span>
+</div>
+
+<section class="hero">
+    <div class="hero-box">
+        <h1>Soporte Técnico Office</h1>
+        <p>Selecciona tu rol para continuar</p>
+        <div class="cards">
+            <div class="role-card" onclick="openLogin('usuario')">
+                <div class="icon">👤</div>
+                <h3>Usuario</h3>
+                <p>Crea y consulta tus tickets</p>
+            </div>
+            <div class="role-card" onclick="openLogin('tecnico')">
+                <div class="icon">🔧</div>
+                <h3>Técnico</h3>
+                <p>Gestiona tickets asignados</p>
+            </div>
+            <div class="role-card" onclick="openLogin('admin')">
+                <div class="icon">🛡️</div>
+                <h3>Admin</h3>
+                <p>Panel de administración</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MODAL LOGIN -->
+<div class="overlay" id="modal-login">
+    <div class="modal">
+        <button class="modal-close" onclick="closeLogin()">✕</button>
+        <h2 id="modal-title">Iniciar sesión</h2>
+        <p class="sub" id="modal-sub">Accede a tu cuenta</p>
+        <div class="err" id="err-login"></div>
+        <div class="fg"><label>Correo</label><input id="l-email" type="email" placeholder="correo@ejemplo.com"/></div>
+        <div class="fg"><label>Contraseña</label><input id="l-pass" type="password" placeholder="••••••••"/></div>
+        <button class="btn-main" id="btn-login" onclick="doLogin()">Entrar</button>
+        <div class="success" id="login-ok">
+            <div class="ck">✅</div>
+            <h3 id="login-ok-msg">¡Bienvenido!</h3>
+        </div>
+        <div class="switch">¿No tienes cuenta? <a onclick="openRegister()">Regístrate aquí</a></div>
+    </div>
+</div>
+
+<!-- MODAL REGISTRO -->
+<div class="overlay" id="modal-reg">
+    <div class="modal">
+        <button class="modal-close" onclick="document.getElementById('modal-reg').classList.remove('active')">✕</button>
+        <h2>Crear cuenta</h2>
+        <p class="sub">Regístrate como usuario</p>
+        <div class="err" id="err-reg"></div>
+        <div class="fg"><label>Nombre completo</label><input id="r-nombre" type="text" placeholder="Juan Pérez"/></div>
+        <div class="fg"><label>Correo</label><input id="r-email" type="email" placeholder="correo@ejemplo.com"/></div>
+        <div class="fg"><label>Contraseña</label><input id="r-pass" type="password" placeholder="Mínimo 8 caracteres"/></div>
+        <div class="fg"><label>Confirmar contraseña</label><input id="r-confirm" type="password" placeholder="Repite tu contraseña"/></div>
+        <button class="btn-main" id="btn-reg" onclick="doRegister()">Crear cuenta</button>
+        <div class="success" id="reg-ok">
+            <div class="ck">🎉</div>
+            <h3>¡Cuenta creada! Ya puedes iniciar sesión.</h3>
+        </div>
+        <div class="switch">¿Ya tienes cuenta? <a onclick="backToLogin()">Inicia sesión</a></div>
+    </div>
+</div>
+
+<script>
+    const API = (() => {
+        const h = window.location.hostname;
+        if (!h || h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000';
+        return 'http://' + h + ':3000';
+    })();
+
+    let rolSeleccionado = 'usuario';
+    const destinos = { usuario: 'usuario.html', tecnico: 'tecnico.html', admin: 'admin.html' };
+    const titulos  = { usuario: 'Acceso de Usuario', tecnico: 'Acceso de Técnico', admin: 'Acceso de Administrador' };
+
+    function openLogin(rol) {
+        rolSeleccionado = rol;
+        document.getElementById('modal-title').textContent = titulos[rol];
+        document.getElementById('modal-sub').textContent = `Ingresa tus credenciales — Rol: ${rol}`;
+        document.getElementById('err-login').style.display = 'none';
+        document.getElementById('login-ok').style.display = 'none';
+        document.getElementById('modal-login').classList.add('active');
+    }
+
+    function closeLogin() { document.getElementById('modal-login').classList.remove('active'); }
+
+    function openRegister() {
+        document.getElementById('modal-login').classList.remove('active');
+        setTimeout(() => document.getElementById('modal-reg').classList.add('active'), 200);
+    }
+
+    function backToLogin() {
+        document.getElementById('modal-reg').classList.remove('active');
+        setTimeout(() => openLogin(rolSeleccionado), 200);
+    }
+
+    async function doLogin() {
+        const email = document.getElementById('l-email').value.trim();
+        const password = document.getElementById('l-pass').value;
+        const errEl = document.getElementById('err-login');
+        errEl.style.display = 'none';
+
+        if (!email || !password) { errEl.textContent = 'Llena todos los campos.'; errEl.style.display = 'block'; return; }
+
+        const btn = document.getElementById('btn-login');
+        btn.disabled = true; btn.textContent = 'Verificando...';
+
+        try {
+            const res  = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'Credenciales incorrectas');
+
+            // Verificar que el rol coincida
+            if (rolSeleccionado !== 'usuario' && data.user.rol !== rolSeleccionado) {
+                throw new Error(`Esta cuenta no tiene rol de ${rolSeleccionado}`);
+            }
+
+            // Guardar sesión — escritura síncrona antes del redirect
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Verificar que se guardó correctamente
+            const tokenVerif = localStorage.getItem('token');
+            console.log('[Login] Token guardado:', tokenVerif ? 'OK' : 'ERROR');
+
+            document.getElementById('login-ok-msg').textContent = `¡Bienvenido, ${data.user.nombre}!`;
+            document.getElementById('login-ok').style.display = 'block';
+            document.querySelectorAll('.fg, .btn-main, .switch, h2, .sub').forEach(e => e.style.display = 'none');
+
+            // Esperar 800ms para asegurar que localStorage esté disponible en la nueva página
+            setTimeout(() => { window.location.href = destinos[data.user.rol] || destinos['usuario']; }, 800);
+
+        } catch(err) {
+            btn.disabled = false; btn.textContent = 'Entrar';
+            errEl.textContent = err.message; errEl.style.display = 'block';
+        }
+    }
+
+    async function doRegister() {
+        const nombre  = document.getElementById('r-nombre').value.trim();
+        const email   = document.getElementById('r-email').value.trim();
+        const pass    = document.getElementById('r-pass').value;
+        const confirm = document.getElementById('r-confirm').value;
+        const errEl   = document.getElementById('err-reg');
+        errEl.style.display = 'none';
+
+        if (!nombre || !email || !pass || !confirm) { errEl.textContent = 'Llena todos los campos.'; errEl.style.display = 'block'; return; }
+        if (pass !== confirm) { errEl.textContent = 'Las contraseñas no coinciden.'; errEl.style.display = 'block'; return; }
+        if (pass.length < 8) { errEl.textContent = 'Mínimo 8 caracteres.'; errEl.style.display = 'block'; return; }
+
+        const btn = document.getElementById('btn-reg');
+        btn.disabled = true; btn.textContent = 'Creando cuenta...';
+
+        try {
+            // 1. Registrar usuario
+            const res  = await fetch(`${API}/users/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nombre, email, password: pass}) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Error al crear cuenta');
+
+            // 2. Login automático para obtener el token
+            btn.textContent = 'Iniciando sesión...';
+            const resLogin  = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password: pass}) });
+            const dataLogin = await resLogin.json();
+
+            if (resLogin.ok && dataLogin.success) {
+                localStorage.setItem('token', dataLogin.token);
+                localStorage.setItem('user', JSON.stringify(dataLogin.user));
+                const tokenGuardado = localStorage.getItem('token');
+                console.log('[Registro] Token guardado:', tokenGuardado ? 'OK' : 'ERROR');
+                document.getElementById('reg-ok').style.display = 'block';
+                document.getElementById('reg-ok').querySelector('h3').textContent = '¡Cuenta creada! Entrando al sistema...';
+                document.querySelectorAll('#modal-reg .fg, #btn-reg, #modal-reg .switch, #modal-reg h2, #modal-reg .sub').forEach(e => e.style.display='none');
+                setTimeout(() => { window.location.href = 'usuario.html'; }, 800);
+            } else {
+                document.getElementById('reg-ok').style.display = 'block';
+                document.querySelectorAll('#modal-reg .fg, #btn-reg, #modal-reg .switch, #modal-reg h2, #modal-reg .sub').forEach(e => e.style.display='none');
+                setTimeout(() => backToLogin(), 2000);
+            }
+        } catch(err) {
+            btn.disabled = false; btn.textContent = 'Crear cuenta';
+            errEl.textContent = err.message; errEl.style.display = 'block';
+        }
+    }
+
+    // Enter key
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') { if (document.getElementById('modal-login').classList.contains('active')) doLogin(); if (document.getElementById('modal-reg').classList.contains('active')) doRegister(); }});
+</script>
+</body>
+</html>

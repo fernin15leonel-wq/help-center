@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Panel Admin — HelpCenter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
+body{background:#f0f4f9;color:#111;}
+.navbar{background:#005a9e;padding:14px 36px;display:flex;justify-content:space-between;align-items:center;color:white;}
+.logo{font-size:20px;font-weight:700;}
+.nav-user{display:flex;align-items:center;gap:12px;font-size:14px;}
+.btn-nav{padding:7px 16px;border-radius:5px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;}
+.btn-logout{background:rgba(255,255,255,.15);color:white;border:1.5px solid rgba(255,255,255,.5);}
+.btn-logout:hover{background:rgba(255,255,255,.25);}
+.hero{background:#005a9e;color:white;padding:36px 36px 50px;}
+.hero h1{font-size:26px;margin-bottom:4px;}
+.hero p{opacity:.8;font-size:14px;}
+.main{max-width:1300px;margin:-24px auto 40px;padding:0 20px;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.sc{background:white;border-radius:10px;padding:18px;text-align:center;border:1px solid #eee;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.sc .num{font-size:34px;font-weight:700;}
+.sc .lbl{font-size:12px;color:#777;margin-top:4px;}
+.sc.total .num{color:#005a9e;}.sc.abierto .num{color:#d13438;}.sc.proceso .num{color:#ffb900;}.sc.resuelto .num{color:#107c10;}
+.panel{background:white;border-radius:12px;border:1px solid #eee;box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden;margin-bottom:24px;}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;gap:10px;}
+.panel-head h2{font-size:18px;color:#005a9e;}
+.filters{display:flex;gap:6px;flex-wrap:wrap;}
+.fb{padding:5px 13px;border-radius:20px;border:2px solid #ddd;background:white;font-size:12px;font-weight:600;cursor:pointer;color:#555;transition:.2s;}
+.fb:hover,.fb.active{background:#005a9e;color:white;border-color:#005a9e;}
+.btn-refresh{padding:7px 16px;background:#005a9e;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+table{width:100%;border-collapse:collapse;}
+th{background:#eef4fb;padding:12px 14px;text-align:left;font-size:12px;color:#005a9e;font-weight:700;border-bottom:2px solid #c5d9f0;white-space:nowrap;}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f5f5f5;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f5f9ff;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-abierto{background:#fde8e8;color:#d13438;}
+.badge-en_proceso{background:#fff4cc;color:#8a5300;}
+.badge-resuelto{background:#dff6dd;color:#107c10;}
+.badge-cerrado{background:#eee;color:#555;}
+.badge-alta{background:#fde8e8;color:#d13438;}
+.badge-media{background:#fff4cc;color:#8a5300;}
+.badge-baja{background:#dff6dd;color:#107c10;}
+.btn-accion{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:.2s;margin:0 2px;}
+.btn-ver{background:#e6f0fb;color:#005a9e;border:1px solid #c5d9f0;}
+.btn-ver:hover{background:#005a9e;color:white;}
+.btn-del{background:#fde8e8;color:#d13438;border:1px solid #f5c6c6;}
+.btn-del:hover{background:#d13438;color:white;}
+.sel-estado{padding:4px 8px;border-radius:4px;border:1.5px solid #005a9e;font-size:11px;font-weight:600;cursor:pointer;color:#005a9e;background:white;}
+.empty{text-align:center;padding:50px 20px;color:#bbb;}
+.empty span{font-size:40px;display:block;margin-bottom:8px;}
+/* Modal detalle ticket */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;}
+.overlay.active{display:flex;}
+.modal{background:white;border-radius:14px;padding:30px 34px;width:100%;max-width:560px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;}
+.modal h2{font-size:20px;color:#005a9e;margin-bottom:4px;}
+.modal .meta{font-size:13px;color:#777;margin-bottom:18px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.info-item label{display:block;font-size:11px;color:#999;font-weight:600;margin-bottom:3px;}
+.info-item span{font-size:14px;font-weight:500;}
+.desc-box{background:#f8f9fa;border-radius:8px;padding:14px;font-size:13px;line-height:1.6;color:#333;margin-bottom:18px;border:1px solid #eee;}
+.respuestas{margin-bottom:18px;}
+.respuestas h3{font-size:14px;font-weight:700;color:#333;margin-bottom:10px;}
+.msg{padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.5;}
+.msg.admin{background:#eef4fb;border-left:3px solid #005a9e;}
+.msg.sistema{background:#f0f0f0;border-left:3px solid #999;font-style:italic;}
+.msg .msg-meta{font-size:11px;color:#999;margin-top:4px;}
+.reply-box{display:flex;flex-direction:column;gap:8px;}
+.reply-box textarea{width:100%;padding:10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px;}
+.reply-box textarea:focus{outline:none;border-color:#005a9e;}
+.btn-reply{padding:9px 20px;background:#005a9e;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;align-self:flex-end;}
+.btn-reply:hover{background:#003f78;}
+.btn-reply:disabled{opacity:.6;cursor:not-allowed;}
+.estado-row{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+.estado-row label{font-size:13px;font-weight:600;}
+.estado-row select{padding:7px 12px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;}
+.btn-guardar-estado{padding:7px 16px;background:#107c10;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo">🛡️ HelpCenter — Panel Admin</div>
+  <div class="nav-user">
+    <span id="nav-nombre">🛡️ Admin</span>
+    <button class="btn-nav btn-logout" onclick="logout()">Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="hero">
+  <h1 id="hero-title">Panel de Administración</h1>
+  <p>Gestiona todos los tickets, responde a usuarios y controla el sistema</p>
+</div>
+
+<div class="main">
+  <div class="stats">
+    <div class="sc total"><div class="num" id="s-total">0</div><div class="lbl">Total tickets</div></div>
+    <div class="sc abierto"><div class="num" id="s-abierto">0</div><div class="lbl">Abiertos</div></div>
+    <div class="sc proceso"><div class="num" id="s-proceso">0</div><div class="lbl">En proceso</div></div>
+    <div class="sc resuelto"><div class="num" id="s-resuelto">0</div><div class="lbl">Resueltos</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>🎫 Todos los tickets</h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="filters">
+          <button class="fb active" onclick="filtrar('todos',this)">Todos</button>
+          <button class="fb" onclick="filtrar('abierto',this)">🔴 Abiertos</button>
+          <button class="fb" onclick="filtrar('en_proceso',this)">🟡 En proceso</button>
+          <button class="fb" onclick="filtrar('resuelto',this)">🟢 Resueltos</button>
+        </div>
+        <button class="btn-refresh" onclick="cargarTickets()">🔄 Actualizar</button>
+      </div>
+    </div>
+    <div id="tabla-wrap"><div class="empty"><span>⏳</span>Cargando...</div></div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE TICKET -->
+<div class="overlay" id="modal-ticket">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal()">✕</button>
+    <h2 id="m-titulo">Ticket #—</h2>
+    <p class="meta" id="m-meta">—</p>
+
+    <div class="info-grid">
+      <div class="info-item"><label>CATEGORÍA</label><span id="m-cat">—</span></div>
+      <div class="info-item"><label>PRIORIDAD</label><span id="m-prior">—</span></div>
+      <div class="info-item"><label>USUARIO</label><span id="m-usuario">—</span></div>
+      <div class="info-item"><label>FECHA</label><span id="m-fecha">—</span></div>
+    </div>
+
+    <div class="desc-box" id="m-desc">—</div>
+
+    <!-- Cambiar estado -->
+    <div class="estado-row">
+      <label>Estado:</label>
+      <select id="m-estado">
+        <option value="abierto">🔴 Abierto</option>
+        <option value="en_proceso">🟡 En proceso</option>
+        <option value="resuelto">🟢 Resuelto</option>
+        <option value="cerrado">⚫ Cerrado</option>
+      </select>
+      <button class="btn-guardar-estado" onclick="guardarEstado()">✔ Guardar estado</button>
+    </div>
+
+    <!-- Respuestas / historial -->
+    <div class="respuestas">
+      <h3>💬 Respuestas enviadas al usuario</h3>
+      <div id="m-respuestas"><p style="color:#bbb;font-size:13px;">Sin respuestas aún.</p></div>
+    </div>
+
+    <!-- Nueva respuesta -->
+    <div class="reply-box">
+      <textarea id="reply-texto" placeholder="Escribe una respuesta para el usuario..."></textarea>
+      <button class="btn-reply" id="btn-reply" onclick="enviarRespuesta()">📨 Enviar respuesta al usuario</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API   = (() => { const h = window.location.hostname; return (!h||h==='localhost'||h==='127.0.0.1') ? 'http://localhost:3000' : 'http://'+h+':3000'; })();
+let token = localStorage.getItem('token');
+let user  = (() => { try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch(e) { return null; } })();
+
+// Resync en caso de que llegue justo después del redirect
+if (!token) token = localStorage.getItem('token');
+
+if (!token || !user || (user.rol !== 'admin')) {
+  alert('Acceso restringido. Solo administradores.');
+  window.location.href = 'index.html';
+}
+
+document.getElementById('nav-nombre').textContent  = '🛡️ ' + (user?.nombre || 'Admin');
+document.getElementById('hero-title').textContent  = '¡Hola, ' + (user?.nombre || 'Admin') + '!';
+
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+let todos = [], filtroActual = 'todos', ticketActual = null;
+
+// ── Filtros ──────────────────────────────────────────
+function filtrar(f, btn) {
+  filtroActual = f;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabla(f === 'todos' ? todos : todos.filter(t => t.estado === f));
+}
+
+// ── Cargar tickets ───────────────────────────────────
+async function cargarTickets() {
+  document.getElementById('tabla-wrap').innerHTML = '<div class="empty"><span>⏳</span>Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}/tickets`, { headers:{'Authorization':'Bearer '+token} });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error');
+    todos = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+    renderStats(todos);
+    renderTabla(filtroActual === 'todos' ? todos : todos.filter(t => t.estado === filtroActual));
+  } catch(err) {
+    document.getElementById('tabla-wrap').innerHTML = `<div class="empty"><span>⚠️</span>${err.message}</div>`;
+  }
+}
+
+function renderStats(list) {
+  document.getElementById('s-total').textContent    = list.length;
+  document.getElementById('s-abierto').textContent  = list.filter(t=>t.estado==='abierto').length;
+  document.getElementById('s-proceso').textContent  = list.filter(t=>t.estado==='en_proceso').length;
+  document.getElementById('s-resuelto').textContent = list.filter(t=>t.estado==='resuelto').length;
+}
+
+function renderTabla(list) {
+  const wrap = document.getElementById('tabla-wrap');
+  if (!list.length) { wrap.innerHTML='<div class="empty"><span>📭</span>No hay tickets</div>'; return; }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>#ID</th><th>Título</th><th>Categoría</th><th>Prioridad</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+    <tbody>${list.map(t => {
+      const fecha = t.created_at ? new Date(t.created_at).toLocaleDateString('es-MX') : '—';
+      return `<tr>
+        <td><strong>#${t.id}</strong></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.titulo||'Sin título'}</td>
+        <td>${t.aplicacion||t.categoria||'—'}</td>
+        <td><span class="badge badge-${t.prioridad}">${t.prioridad}</span></td>
+        <td><span class="badge badge-${t.estado}">${t.estado.replace('_',' ')}</span></td>
+        <td>${fecha}</td>
+        <td>
+          <button class="btn-accion btn-ver" onclick="abrirTicket(${t.id})">👁 Ver / Responder</button>
+          <button class="btn-accion btn-del" onclick="eliminarTicket(${t.id})">🗑 Eliminar</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+// ── Modal detalle ────────────────────────────────────
+function abrirTicket(id) {
+  ticketActual = todos.find(t => t.id === id);
+  if (!ticketActual) return;
+  const t = ticketActual;
+  const fecha = t.created_at ? new Date(t.created_at).toLocaleDateString('es-MX') : '—';
+  document.getElementById('m-titulo').textContent  = `Ticket #${t.id} — ${t.titulo||'Sin título'}`;
+  document.getElementById('m-meta').textContent    = `Creado el ${fecha}`;
+  document.getElementById('m-cat').textContent     = t.aplicacion || t.categoria || '—';
+  document.getElementById('m-prior').innerHTML     = `<span class="badge badge-${t.prioridad}">${t.prioridad}</span>`;
+  document.getElementById('m-usuario').textContent = t.nombre_usuario || t.usuario_nombre || t.nombre || (t.usuario_id ? `Usuario #${t.usuario_id}` : 'Anónimo');
+  document.getElementById('m-fecha').textContent   = fecha;
+  document.getElementById('m-desc').textContent    = t.descripcion || '—';
+  document.getElementById('m-estado').value        = t.estado || 'abierto';
+  cargarComentarios(id);
+  document.getElementById('reply-texto').value = '';
+  document.getElementById('modal-ticket').classList.add('active');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-ticket').classList.remove('active');
+  ticketActual = null;
+}
+
+// Cargar comentarios desde la BD
+async function cargarComentarios(ticket_id) {
+  const wrap = document.getElementById('m-respuestas');
+  wrap.innerHTML = '<p style="color:#bbb;font-size:13px;">Cargando...</p>';
+  try {
+    const res  = await fetch(`${API}/tickets/${ticket_id}/comentarios`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    const list = data.data || [];
+    if (!list.length) {
+      wrap.innerHTML = '<p style="color:#bbb;font-size:13px;">Sin respuestas aún.</p>';
+      return;
+    }
+    wrap.innerHTML = list.map(c => {
+      const fecha = new Date(c.created_at).toLocaleString('es-MX');
+      const icono = c.rol_autor === 'admin' ? '🛡️' : '🔧';
+      return `<div class="msg admin">
+        <div>${c.comentario}</div>
+        <div class="msg-meta">${icono} ${c.autor||'Soporte'} — ${fecha}</div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    wrap.innerHTML = '<p style="color:#bbb;font-size:13px;">Error al cargar respuestas.</p>';
+  }
+}
+
+async function enviarRespuesta() {
+  const texto = document.getElementById('reply-texto').value.trim();
+  if (!texto || !ticketActual) return;
+  const btn = document.getElementById('btn-reply');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    // Guardar en BD usando el endpoint correcto
+    const res = await fetch(`${API}/tickets/${ticketActual.id}/comentario`, {
+      method:  'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:    JSON.stringify({ mensaje: texto })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error al enviar');
+
+    document.getElementById('reply-texto').value = '';
+    // Recargar comentarios desde BD
+    await cargarComentarios(ticketActual.id);
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+  btn.disabled = false; btn.textContent = '📨 Enviar respuesta al usuario';
+}
+
+// ── Cambiar estado ───────────────────────────────────
+async function guardarEstado() {
+  if (!ticketActual) return;
+  const estado = document.getElementById('m-estado').value;
+  try {
+    const res = await fetch(`${API}/tickets/${ticketActual.id}/estado`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({estado})
+    });
+    if (!res.ok) throw new Error('Error al cambiar estado');
+    ticketActual.estado = estado;
+    const t = todos.find(x => x.id === ticketActual.id);
+    if (t) t.estado = estado;
+    renderStats(todos);
+    renderTabla(filtroActual === 'todos' ? todos : todos.filter(t => t.estado === filtroActual));
+    alert('✅ Estado actualizado correctamente');
+  } catch(err) { alert('Error: '+err.message); }
+}
+
+// ── Eliminar ─────────────────────────────────────────
+async function eliminarTicket(id) {
+  if (!confirm(`¿Eliminar el ticket #${id}? Esta acción no se puede deshacer.`)) return;
+  try {
+    const res = await fetch(`${API}/tickets/${id}`, {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+token}
+    });
+    if (!res.ok) throw new Error('Error al eliminar');
+    todos = todos.filter(t => t.id !== id);
+    renderStats(todos);
+    renderTabla(filtroActual === 'todos' ? todos : todos.filter(t => t.estado === filtroActual));
+  } catch(err) { alert('Error: '+err.message); }
+}
+
+// Cerrar modal con Escape
+document.addEventListener('keydown', e => { if (e.key==='Escape') cerrarModal(); });
+document.getElementById('modal-ticket').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-ticket')) cerrarModal();
+});
+
+cargarTickets();
+</script>
+</body>
+</html>
